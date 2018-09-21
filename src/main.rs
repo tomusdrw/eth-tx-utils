@@ -47,7 +47,11 @@ fn bump_gas_price(gas_price: &str, rlp: &str, key_path: &::std::path::Path) -> R
     let mut unsigned = tx.as_unsigned().clone();
 
     // alter the gas price
-    let res = format!("New gas price: {}", gas_price);
+    println!(
+        "GAS PRICE:\n  Current: {gp:x} ({gp})\n  New: {new:x} ({new})",
+        gp = unsigned.gas_price,
+        new = gas_price
+    );
     unsigned.gas_price = gas_price;
 
     // get the secret to sign transaction
@@ -56,7 +60,7 @@ fn bump_gas_price(gas_price: &str, rlp: &str, key_path: &::std::path::Path) -> R
 
     let rlp = rlp::encode(&signed).into_vec();
     let s: String = rlp.to_hex();
-    Ok(format!("{}\nRLP: {}", res, s))
+    Ok(format!("RLP: {}", s))
 }
 
 fn sign(key_path: &::std::path::Path, message: &ethkey::Message) -> Result<ethkey::Signature, String> {
@@ -68,7 +72,7 @@ fn sign(key_path: &::std::path::Path, message: &ethkey::Message) -> Result<ethke
         ::std::fs::File::open(key_path).map_err(debug)?,
     ).map_err(debug)?;
 
-    let password = rpassword::prompt_password_stdout(&format!("Password for {}", account.address)).map_err(debug)?;
+    let password = rpassword::prompt_password_stdout(&format!("Password for {}: ", account.address)).map_err(debug)?;
     account.sign(&password.into(), message).map_err(debug)
 }
 
