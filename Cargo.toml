@@ -8,6 +8,6 @@ ethcore-transaction = { git = "https://github.com/paritytech/parity-ethereum" }
 ethkey = { git = "https://github.com/paritytech/parity-ethereum" }
 ethstore = { git = "https://github.com/paritytech/parity-ethereum" }
 rlp = "0.2"
-rpassword = "2.0"
+rpassword = "3.0"
 rustc-hex = "2"
 serde_json = "1.0"
