@@ -1,8 +1,5 @@
 sudo: false
 language: rust
-branches:
-  only:
-  - master
 
 cache: cargo
 
@@ -11,9 +8,7 @@ matrix:
   include:
   - rust: stable
   - rust: beta
-  - rust: nightly
 
-before_script:
-  - rustup toolchain install stable
-
-script: ./test.sh
+script:
+  - cargo build
+  - cargo test
