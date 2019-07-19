@@ -7,7 +7,7 @@ authors = ["Tomasz Drwięga <tomusdrw@gmail.com>"]
 ethcore-transaction = { git = "https://github.com/paritytech/parity-ethereum" }
 ethkey = { git = "https://github.com/paritytech/parity-ethereum" }
 ethstore = { git = "https://github.com/paritytech/parity-ethereum" }
-rlp = "0.2"
+rlp = "0.4"
 rpassword = "3.0"
 rustc-hex = "2"
 serde_json = "1.0"
