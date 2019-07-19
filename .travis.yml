@@ -1,0 +1,14 @@
+sudo: false
+language: rust
+
+cache: cargo
+
+matrix:
+  fast_finish: false
+  include:
+  - rust: stable
+  - rust: beta
+
+script:
+  - cargo build
+  - cargo test
