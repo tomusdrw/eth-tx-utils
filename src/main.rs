@@ -1,4 +1,4 @@
-extern crate ethcore_transaction;
+extern crate common_types;
 extern crate ethkey;
 extern crate ethstore;
 extern crate rlp;
@@ -6,7 +6,7 @@ extern crate rpassword;
 extern crate rustc_hex;
 extern crate serde_json;
 
-use ethcore_transaction::{UnverifiedTransaction, SignedTransaction};
+use common_types::transaction::{UnverifiedTransaction, SignedTransaction};
 use rlp::Decodable;
 use rustc_hex::{FromHex, ToHex};
 
@@ -58,14 +58,14 @@ fn bump_gas_price(gas_price: &str, rlp: &str, key_path: &::std::path::Path) -> R
     let signature = sign(key_path, &unsigned.hash(chain_id))?;
     let signed = unsigned.with_signature(signature, chain_id);
 
-    let rlp = rlp::encode(&signed).into_vec();
+    let rlp = rlp::encode(&signed).to_vec();
     let s: String = rlp.to_hex();
     Ok(format!("RLP: {}", s))
 }
 
 fn sign(key_path: &::std::path::Path, message: &ethkey::Message) -> Result<ethkey::Signature, String> {
     // THE API IS FUCKING UGLY! Why can't I just create SafeAccount by deserializing the fucking JSON?
-    let disk = ethstore::accounts_dir::DiskKeyFileManager;
+    let disk = ethstore::accounts_dir::DiskKeyFileManager::default();
     let account = ethstore::accounts_dir::KeyFileManager::read(
         &disk,
         key_path.to_str().map(str::to_owned),
