@@ -2,11 +2,12 @@
 name = "tx-fee-bumper"
 version = "0.1.0"
 authors = ["Tomasz Drwięga <tomusdrw@gmail.com>"]
+edition = "2018"
 
 [dependencies]
-common-types = { git = "https://github.com/paritytech/parity-ethereum" }
-ethkey = { git = "https://github.com/paritytech/parity-ethereum" }
-ethstore = { git = "https://github.com/paritytech/parity-ethereum" }
+# TODO move this to separate crate
+ethereum-transaction = { git = "https://github.com/tomusdrw/jsonrpc-proxy" }
+ethsign = "0.7"
 rlp = "0.4"
 rpassword = "4.0"
 rustc-hex = "2"

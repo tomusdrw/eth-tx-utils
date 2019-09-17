@@ -1,12 +1,5 @@
-extern crate common_types;
-extern crate ethkey;
-extern crate ethstore;
-extern crate rlp;
-extern crate rpassword;
-extern crate rustc_hex;
-extern crate serde_json;
-
-use common_types::transaction::{UnverifiedTransaction, SignedTransaction};
+use ethereum_transaction::SignedTransaction;
+use ethsign::{Signature, keyfile::KeyFile, Protected};
 use rlp::Decodable;
 use rustc_hex::{FromHex, ToHex};
 
@@ -39,41 +32,43 @@ Usage: <bin> <NewGasPrice> <RLP> <KeyPath>
 fn bump_gas_price(gas_price: &str, rlp: &str, key_path: &::std::path::Path) -> Result<String, String> {
     let rlp: Vec<_> = rlp.from_hex().map_err(debug)?;
     let gas_price = gas_price.parse().map_err(debug)?;
-    let tx = UnverifiedTransaction::decode(&rlp::Rlp::new(&rlp)).map_err(debug)?;
+    let mut tx = SignedTransaction::decode(&rlp::Rlp::new(&rlp)).map_err(debug)?;
     // check correctness of the transaction
-    let (tx, address, _) = SignedTransaction::new(tx).map_err(debug)?.deconstruct();
-    // alter gas price
-    let chain_id = tx.chain_id();
-    let mut unsigned = tx.as_unsigned().clone();
-
+    let signature = Signature {
+        v: tx.standard_v(),
+        r: tx.r.into(),
+        s: tx.s.into(),
+    };
+    let pubkey = signature.recover(&tx.bare_hash()).map_err(debug)?;
+    println!("Recovered: {:?}", pubkey.address());
     // alter the gas price
     println!(
         "GAS PRICE:\n  Current: {gp:x} ({gp})\n  New: {new:x} ({new})",
-        gp = unsigned.gas_price,
+        gp = tx.transaction.gas_price,
         new = gas_price
     );
-    unsigned.gas_price = gas_price;
+    tx.transaction.to_mut().gas_price = gas_price;
 
     // get the secret to sign transaction
-    let signature = sign(key_path, &unsigned.hash(chain_id))?;
-    let signed = unsigned.with_signature(signature, chain_id);
+    let keyfile = std::fs::File::open(key_path).map_err(debug)?;
+    let key: KeyFile = serde_json::from_reader(keyfile).map_err(debug)?;
+    let password: Protected = rpassword::prompt_password_stdout(
+        &format!("Password for {:?}: ", key.address)
+    ).map_err(debug)?.into();
+    let secret_key = key.to_secret_key(&password).map_err(debug)?;
+    let signature = secret_key.sign(&tx.bare_hash()).map_err(debug)?;
 
-    let rlp = rlp::encode(&signed).to_vec();
+    let chain_id = tx.chain_id().unwrap_or_default();
+    let transaction = SignedTransaction::new(
+        tx.transaction,
+        chain_id,
+        signature.v,
+        signature.r,
+        signature.s,
+    );
+    let rlp = rlp::encode(&transaction).to_vec();
     let s: String = rlp.to_hex();
     Ok(format!("RLP: {}", s))
-}
-
-fn sign(key_path: &::std::path::Path, message: &ethkey::Message) -> Result<ethkey::Signature, String> {
-    // THE API IS FUCKING UGLY! Why can't I just create SafeAccount by deserializing the fucking JSON?
-    let disk = ethstore::accounts_dir::DiskKeyFileManager::default();
-    let account = ethstore::accounts_dir::KeyFileManager::read(
-        &disk,
-        key_path.to_str().map(str::to_owned),
-        ::std::fs::File::open(key_path).map_err(debug)?,
-    ).map_err(debug)?;
-
-    let password = rpassword::prompt_password_stdout(&format!("Password for {}: ", account.address)).map_err(debug)?;
-    account.sign(&password.into(), message).map_err(debug)
 }
 
 fn debug<T: ::std::fmt::Debug>(t: T) -> String {
