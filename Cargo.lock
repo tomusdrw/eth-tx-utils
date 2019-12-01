@@ -665,7 +665,7 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.40"
+version = "1.0.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "itoa 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -734,7 +734,7 @@ dependencies = [
  "rlp 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rpassword 4.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-hex 2.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_json 1.0.40 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_json 1.0.42 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -865,7 +865,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum secp256k1 0.15.5 (registry+https://github.com/rust-lang/crates.io-index)" = "4d311229f403d64002e9eed9964dfa5a0a0c1ac443344f7546bf48e916c6053a"
 "checksum serde 1.0.97 (registry+https://github.com/rust-lang/crates.io-index)" = "d46b3dfedb19360a74316866cef04687cd4d6a70df8e6a506c63512790769b72"
 "checksum serde_derive 1.0.97 (registry+https://github.com/rust-lang/crates.io-index)" = "c22a0820adfe2f257b098714323563dd06426502abbbce4f51b72ef544c5027f"
-"checksum serde_json 1.0.40 (registry+https://github.com/rust-lang/crates.io-index)" = "051c49229f282f7c6f3813f8286cc1e3323e8051823fce42c7ea80fe13521704"
+"checksum serde_json 1.0.42 (registry+https://github.com/rust-lang/crates.io-index)" = "1a3351dcbc1f067e2c92ab7c3c1f288ad1a4cffc470b5aaddb4c2e0a3ae80043"
 "checksum sha2 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "7b4d8bfd0e469f417657573d8451fb33d16cfe0989359b93baf3a1ffc639543d"
 "checksum static_assertions 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "c19be23126415861cb3a23e501d34a708f7f9b2183c5252d690941c2e69199d5"
 "checksum stream-cipher 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8861bc80f649f5b4c9bd38b696ae9af74499d479dbfb327f0607de6b326a36bc"
