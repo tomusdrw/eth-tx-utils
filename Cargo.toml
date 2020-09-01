@@ -9,6 +9,6 @@ edition = "2018"
 ethereum-transaction = { git = "https://github.com/tomusdrw/jsonrpc-proxy" }
 ethsign = "0.7"
 rlp = "0.4"
-rpassword = "4.0"
+rpassword = "5.0"
 rustc-hex = "2"
 serde_json = "1.0"
