@@ -194,7 +194,7 @@ dependencies = [
 [[package]]
 name = "ethereum-transaction"
 version = "0.2.0"
-source = "git+https://github.com/tomusdrw/jsonrpc-proxy#1561d1d2324b4cb982fa19e1740e006eabceef4f"
+source = "git+https://github.com/tomusdrw/jsonrpc-proxy#2296dfd9c062e597fd7fbf7b0ecc8b798fab6fc3"
 dependencies = [
  "ethereum-types 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "impl-serde 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
