@@ -5,9 +5,10 @@ authors = ["Tomasz Drwięga <tomusdrw@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-# TODO move this to separate crate
-ethereum-transaction = { git = "https://github.com/tomusdrw/jsonrpc-proxy" }
+ethereum-transaction = "0.3"
+ethereum-types = "0.8"
 ethsign = "0.7"
+env_logger = "0.5"
 rlp = "0.4"
 rpassword = "5.0"
 rustc-hex = "2"

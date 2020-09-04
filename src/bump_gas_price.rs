@@ -1,13 +1,12 @@
-use ethereum_transaction::SignedTransaction;
+use ethereum_transaction::{SignedTransaction, SignTransaction};
+use ethereum_types::U256;
 use ethsign::Signature;
+use crate::utils::{debug, sign_transaction};
 use rlp::Decodable;
-use rustc_hex::{FromHex, ToHex};
-use crate::utils::{debug, open_keyfile};
+use rustc_hex::ToHex;
 
-pub fn bump_gas_price(gas_price: &str, rlp: &str, key_path: &std::path::Path) -> Result<String, String> {
-    let rlp: Vec<_> = rlp.from_hex().map_err(debug)?;
-    let gas_price = gas_price.parse().map_err(debug)?;
-    let mut tx = SignedTransaction::decode(&rlp::Rlp::new(&rlp)).map_err(debug)?;
+pub fn bump_gas_price(gas_price: U256, rlp: &[u8], key_path: &std::path::Path) -> Result<Vec<u8>, String> {
+    let mut tx = SignedTransaction::decode(&rlp::Rlp::new(rlp)).map_err(debug)?;
     // check correctness of the transaction
     let signature = Signature {
         v: tx.standard_v(),
@@ -15,7 +14,7 @@ pub fn bump_gas_price(gas_price: &str, rlp: &str, key_path: &std::path::Path) ->
         s: tx.s.into(),
     };
     let pubkey = signature.recover(&tx.bare_hash()).map_err(debug)?;
-    println!("Recovered: {:?}", pubkey.address());
+    println!("Recovered: {:?}", pubkey.address().to_hex::<String>());
     // alter the gas price
     println!(
         "GAS PRICE:\n  Current: {gp:x} ({gp})\n  New: {new:x} ({new})",
@@ -25,19 +24,12 @@ pub fn bump_gas_price(gas_price: &str, rlp: &str, key_path: &std::path::Path) ->
     tx.transaction.to_mut().gas_price = gas_price;
 
     // get the secret to sign transaction
-    let secret_key = open_keyfile(key_path)?;
-    let signature = secret_key.sign(&tx.bare_hash()).map_err(debug)?;
-
     let chain_id = tx.chain_id().unwrap_or_default();
-    let transaction = SignedTransaction::new(
-        tx.transaction,
-        chain_id,
-        signature.v,
-        signature.r,
-        signature.s,
-    );
-    let rlp = rlp::encode(&transaction).to_vec();
-    let s: String = rlp.to_hex();
-    Ok(format!("RLP: {}", s))
+    let signed = sign_transaction(key_path, SignTransaction {
+        transaction: tx.transaction,
+        chain_id
+    })?;
+    let rlp = rlp::encode(&signed).to_vec();
+    Ok(rlp)
 }
 
