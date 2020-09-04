@@ -1,6 +1,14 @@
+use ethereum_types::H160;
 use ethereum_transaction::{SignTransaction, SignedTransaction};
 use ethsign::{keyfile::KeyFile, Protected};
 use rustc_hex::ToHex;
+
+pub fn read_keyfile_address(key_path: &std::path::Path) -> Result<H160, String> {
+    let keyfile = std::fs::File::open(key_path).map_err(debug)?;
+    let key: KeyFile = serde_json::from_reader(keyfile).map_err(debug)?;
+    let addr = key.address.as_ref().ok_or_else(|| "No address in JSON.".to_owned())?;
+    Ok(H160::from_slice(&addr.0))
+}
 
 pub fn open_keyfile(key_path: &std::path::Path) -> Result<ethsign::SecretKey, String> {
     let keyfile = std::fs::File::open(key_path).map_err(debug)?;
