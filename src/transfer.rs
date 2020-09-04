@@ -27,3 +27,21 @@ pub fn transfer(
     let rlp = rlp::encode(&signed).to_vec();
     Ok(rlp)
 }
+
+pub fn get_nonce(
+    rpc: &Option<String>,
+    nonce: &Option<U256>,
+    key_path: &std::path::Path,
+) -> Result<U256, String> {
+    match (rpc.as_ref(), nonce.as_ref()) {
+        (Some(url), None) => {
+            let address = crate::utils::read_keyfile_address(key_path)?;
+            println!("Retrieving nonce for {:?}", address);
+            crate::web3::send(&url, |rt, web3| rt.block_on(
+                web3.eth().transaction_count(address, None)
+            )).map_err(debug)
+        },
+        (_, Some(nonce)) => Ok(nonce.clone()),
+        (None, None) => Err("No RPC nor Nonce provided.".into()),
+    }
+}

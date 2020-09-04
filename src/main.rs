@@ -5,6 +5,7 @@ use rustc_hex::{FromHex, ToHex};
 mod bump_gas_price;
 mod transfer;
 mod utils;
+mod web3;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "eth-tx-util", about = "Ethereum transaction utilities")]
@@ -25,6 +26,9 @@ struct BumpGasPrice {
     /// Path to a JSON key file.
     #[structopt(long)]
     key_path: std::path::PathBuf,
+    /// An RPC endpoint to send the transaction to.
+    #[structopt(long)]
+    rpc: Option<String>,
 }
 
 #[derive(Debug, StructOpt)]
@@ -34,8 +38,12 @@ struct Transfer {
     #[structopt(long)]
     to: H160,
     /// Transaction nonce.
-    #[structopt(long, parse(try_from_str = parse_u256))]
-    nonce: U256,
+    #[structopt(
+        long,
+        parse(try_from_str = parse_u256),
+        required_if("rpc", "None")
+    )]
+    nonce: Option<U256>,
     /// Value to transfer.
     #[structopt(long, parse(try_from_str = parse_u256))]
     amount: U256,
@@ -48,6 +56,9 @@ struct Transfer {
     /// Path to a JSON key file.
     #[structopt(long)]
     key_path: std::path::PathBuf,
+    /// An RPC endpoint to send the transaction to.
+    #[structopt(long)]
+    rpc: Option<String>,
 }
 
 fn main() -> Result<(), String> {
@@ -56,18 +67,35 @@ fn main() -> Result<(), String> {
     let result = match opt {
         Opt::BumpGasPrice(opt) => {
             let rlp = bump_gas_price::bump_gas_price(opt.gas_price, &opt.rlp, &opt.key_path.as_ref())?;
-            format!("RLP: {}", rlp.to_hex::<String>())
+            let r = format!("RLP: {}", rlp.to_hex::<String>());
+            if let Some(url) = opt.rpc {
+                println!("Submitting {} to {}", r, url);
+                let r = crate::web3::send(&url, |rt, web3| rt.block_on(
+                    web3.eth().send_raw_transaction(rlp.clone().into())
+                )).map_err(crate::utils::debug)?;
+                println!("Response: {:?}", r);
+            }
+            r
         },
         Opt::Transfer(opt) => {
+            let nonce = transfer::get_nonce(&opt.rpc, &opt.nonce, &opt.key_path)?;
             let rlp = transfer::transfer(
                 opt.to,
-                opt.nonce,
+                nonce,
                 opt.amount,
                 opt.gas_price,
                 opt.chain_id,
                 &opt.key_path.as_ref()
             )?;
-            format!("RLP: {}", rlp.to_hex::<String>())
+            let r = format!("RLP: {}", rlp.to_hex::<String>());
+            if let Some(url) = opt.rpc {
+                println!("Submitting {} to {}", r, url);
+                let r = crate::web3::send(&url, |rt, web3| rt.block_on(
+                    web3.eth().send_raw_transaction(rlp.clone().into())
+                )).map_err(crate::utils::debug)?;
+                println!("Response: {:?}", r);
+            }
+            r
         },
     };
     println!("{}", result);

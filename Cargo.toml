@@ -5,12 +5,14 @@ authors = ["Tomasz Drwięga <tomusdrw@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-ethereum-transaction = "0.3"
-ethereum-types = "0.8"
-ethsign = "0.7"
 env_logger = "0.5"
+ethereum-transaction = "0.4"
+ethereum-types = "0.9"
+ethsign = "0.7"
 rlp = "0.4"
 rpassword = "5.0"
 rustc-hex = "2"
 serde_json = "1.0"
 structopt = "0.3"
+tokio = "0.2"
+web3 = { version = "0.13", default-features = false, features = ["http"] }
