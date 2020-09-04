@@ -1,76 +1,109 @@
-use ethereum_transaction::SignedTransaction;
-use ethsign::{Signature, keyfile::KeyFile, Protected};
-use rlp::Decodable;
+use structopt::StructOpt;
+use ethereum_types::{U256, H160};
 use rustc_hex::{FromHex, ToHex};
 
-fn main() {
-    let mut it = ::std::env::args();
-    // skip binary name
-    it.next();
-    let gas_price = it.next();
-    let rlp = it.next();
-    let key_path = it.next();
-    let result = match (gas_price, rlp, key_path) {
-        (Some(gas_price), Some(rlp), Some(key_path)) => {
-            bump_gas_price(&gas_price, &rlp, key_path.as_ref())
+mod bump_gas_price;
+mod transfer;
+mod utils;
+
+#[derive(Debug, StructOpt)]
+#[structopt(name = "eth-tx-util", about = "Ethereum transaction utilities")]
+enum Opt {
+    BumpGasPrice(BumpGasPrice),
+    Transfer(Transfer),
+}
+
+#[derive(Debug, StructOpt)]
+#[structopt(name = "bump-gas-price", about = "Get a signed transaction with increased gas price given a RLP of signed transaction")]
+struct BumpGasPrice {
+    /// New gas price of the transaction.
+    #[structopt(long, parse(try_from_str = parse_u256))]
+    gas_price: U256,
+    /// Hex-encoded RLP of the transaction.
+    #[structopt(long)]
+    rlp: HexBytes,
+    /// Path to a JSON key file.
+    #[structopt(long)]
+    key_path: std::path::PathBuf,
+}
+
+#[derive(Debug, StructOpt)]
+#[structopt(name = "transfer", about = "Create a signed transfer transaction.")]
+struct Transfer {
+    /// Destination address.
+    #[structopt(long)]
+    to: H160,
+    /// Transaction nonce.
+    #[structopt(long, parse(try_from_str = parse_u256))]
+    nonce: U256,
+    /// Value to transfer.
+    #[structopt(long, parse(try_from_str = parse_u256))]
+    amount: U256,
+    /// Gas Price to use.
+    #[structopt(long, parse(try_from_str = parse_u256), default_value = "20_000_000_000")] 
+    gas_price: U256,
+    /// Chain ID used for signing.
+    #[structopt(long, default_value = "105")]
+    chain_id: u64,
+    /// Path to a JSON key file.
+    #[structopt(long)]
+    key_path: std::path::PathBuf,
+}
+
+fn main() -> Result<(), String> {
+    env_logger::init();
+    let opt = Opt::from_args();
+    let result = match opt {
+        Opt::BumpGasPrice(opt) => {
+            let rlp = bump_gas_price::bump_gas_price(opt.gas_price, &opt.rlp, &opt.key_path.as_ref())?;
+            format!("RLP: {}", rlp.to_hex::<String>())
         },
-        (None, _, _) => Err("Please provide a new gas price as the first argument.".into()),
-        (_, None, _) => Err("Please provide a raw transaction (RLP) as the second argument.".into()),
-        (_, _, None) => Err("Please provide key path as the third argument.".into()),
+        Opt::Transfer(opt) => {
+            let rlp = transfer::transfer(
+                opt.to,
+                opt.nonce,
+                opt.amount,
+                opt.gas_price,
+                opt.chain_id,
+                &opt.key_path.as_ref()
+            )?;
+            format!("RLP: {}", rlp.to_hex::<String>())
+        },
     };
+    println!("{}", result);
+    Ok(())
+}
 
-    match result {
-        Ok(o) => println!("{}", o),
-        Err(e) => println!(r#"Error:
-{:?}
+pub struct HexBytes(Vec<u8>);
 
-Usage: <bin> <NewGasPrice> <RLP> <KeyPath>
-"#, e),
+impl std::ops::Deref for HexBytes {
+    type Target = [u8];
+
+    fn deref(&self) -> &Self::Target {
+        &*self.0
+    }   
+}
+
+impl std::fmt::Debug for HexBytes {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let s: String = self.0.to_hex();
+        write!(fmt, "{}", s)
     }
 }
 
-fn bump_gas_price(gas_price: &str, rlp: &str, key_path: &::std::path::Path) -> Result<String, String> {
-    let rlp: Vec<_> = rlp.from_hex().map_err(debug)?;
-    let gas_price = gas_price.parse().map_err(debug)?;
-    let mut tx = SignedTransaction::decode(&rlp::Rlp::new(&rlp)).map_err(debug)?;
-    // check correctness of the transaction
-    let signature = Signature {
-        v: tx.standard_v(),
-        r: tx.r.into(),
-        s: tx.s.into(),
-    };
-    let pubkey = signature.recover(&tx.bare_hash()).map_err(debug)?;
-    println!("Recovered: {:?}", pubkey.address());
-    // alter the gas price
-    println!(
-        "GAS PRICE:\n  Current: {gp:x} ({gp})\n  New: {new:x} ({new})",
-        gp = tx.transaction.gas_price,
-        new = gas_price
-    );
-    tx.transaction.to_mut().gas_price = gas_price;
-
-    // get the secret to sign transaction
-    let keyfile = std::fs::File::open(key_path).map_err(debug)?;
-    let key: KeyFile = serde_json::from_reader(keyfile).map_err(debug)?;
-    let password: Protected = rpassword::prompt_password_stdout(
-        &format!("Password for {:?}: ", key.address)
-    ).map_err(debug)?.into();
-    let secret_key = key.to_secret_key(&password).map_err(debug)?;
-    let signature = secret_key.sign(&tx.bare_hash()).map_err(debug)?;
-
-    let chain_id = tx.chain_id().unwrap_or_default();
-    let transaction = SignedTransaction::new(
-        tx.transaction,
-        chain_id,
-        signature.v,
-        signature.r,
-        signature.s,
-    );
-    let rlp = rlp::encode(&transaction).to_vec();
-    let s: String = rlp.to_hex();
-    Ok(format!("RLP: {}", s))
+impl std::str::FromStr for HexBytes {
+    type Err = rustc_hex::FromHexError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(HexBytes(s.from_hex::<Vec<u8>>()?))
+    }
 }
 
-fn debug<T: ::std::fmt::Debug>(t: T) -> String {
-    format!("{:?}", t)
+fn parse_u256(s: &str) -> Result<U256, <U256 as std::str::FromStr>::Err> {
+    let s = s.replace('_', "");
+    let num: Option<u64> = s.parse().ok();
+    if let Some(num) = num {
+        Ok(num.into())
+    } else {
+        s.parse()
+    }
 }
