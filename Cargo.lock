@@ -254,7 +254,7 @@ dependencies = [
 
 [[package]]
 name = "env_logger"
-version = "0.5.13"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "atty 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1445,7 +1445,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "tx-utils"
 version = "0.1.0"
 dependencies = [
- "env_logger 0.5.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "ethereum-transaction 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "ethereum-types 0.9.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "ethsign 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1654,7 +1654,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum ctr 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "022cd691704491df67d25d006fe8eca083098253c4d43516c2206479c58c6736"
 "checksum derive_more 0.99.9 (registry+https://github.com/rust-lang/crates.io-index)" = "298998b1cf6b5b2c8a7b023dfd45821825ce3ba8a8af55c921a0e734e4653f76"
 "checksum digest 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)" = "f3d0c8c8752312f9713efd397ff63acb9f85585afbf179282e720e7704954dd5"
-"checksum env_logger 0.5.13 (registry+https://github.com/rust-lang/crates.io-index)" = "15b0a4d2e39f8420210be8b27eeda28029729e2fd4291019455016c348240c38"
+"checksum env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)" = "44533bbbb3bb3c1fa17d9f2e4e38bbbaf8396ba82193c4cb1b6445d711445d36"
 "checksum ethabi 12.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "052a565e3de82944527d6d10a465697e6bb92476b772ca7141080c901f6a63c6"
 "checksum ethbloom 0.9.2 (registry+https://github.com/rust-lang/crates.io-index)" = "71a6567e6fd35589fea0c63b94b4cf2e55573e413901bdbe60ab15cf0e25e5df"
 "checksum ethereum-transaction 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "74d9b00e1bea9839491911a108b38771bcbcec7ad557bd6d10582b0686aa74be"
