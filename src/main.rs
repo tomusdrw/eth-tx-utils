@@ -1,6 +1,6 @@
-use structopt::StructOpt;
-use ethereum_types::{U256, H160};
+use ethereum_types::{H160, U256};
 use rustc_hex::{FromHex, ToHex};
+use structopt::StructOpt;
 
 mod bump_gas_price;
 mod transfer;
@@ -15,7 +15,10 @@ enum Opt {
 }
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "bump-gas-price", about = "Get a signed transaction with increased gas price given a RLP of signed transaction")]
+#[structopt(
+    name = "bump-gas-price",
+    about = "Get a signed transaction with increased gas price given a RLP of signed transaction"
+)]
 struct BumpGasPrice {
     /// New gas price of the transaction.
     #[structopt(long, parse(try_from_str = parse_u256))]
@@ -48,7 +51,7 @@ struct Transfer {
     #[structopt(long, parse(try_from_str = parse_u256))]
     amount: U256,
     /// Gas Price to use.
-    #[structopt(long, parse(try_from_str = parse_u256), default_value = "20_000_000_000")] 
+    #[structopt(long, parse(try_from_str = parse_u256), default_value = "20_000_000_000")]
     gas_price: U256,
     /// Chain ID used for signing.
     #[structopt(long, default_value = "105")]
@@ -66,17 +69,19 @@ fn main() -> Result<(), String> {
     let opt = Opt::from_args();
     let result = match opt {
         Opt::BumpGasPrice(opt) => {
-            let rlp = bump_gas_price::bump_gas_price(opt.gas_price, &opt.rlp, &opt.key_path.as_ref())?;
+            let rlp =
+                bump_gas_price::bump_gas_price(opt.gas_price, &opt.rlp, &opt.key_path.as_ref())?;
             let r = format!("RLP: {}", rlp.to_hex::<String>());
             if let Some(url) = opt.rpc {
                 println!("Submitting {} to {}", r, url);
-                let r = crate::web3::send(&url, |rt, web3| rt.block_on(
-                    web3.eth().send_raw_transaction(rlp.clone().into())
-                )).map_err(crate::utils::debug)?;
+                let r = crate::web3::send(&url, |rt, web3| {
+                    rt.block_on(web3.eth().send_raw_transaction(rlp.clone().into()))
+                })
+                .map_err(crate::utils::debug)?;
                 println!("Response: {:?}", r);
             }
             r
-        },
+        }
         Opt::Transfer(opt) => {
             let nonce = transfer::get_nonce(&opt.rpc, &opt.nonce, &opt.key_path)?;
             let rlp = transfer::transfer(
@@ -85,18 +90,19 @@ fn main() -> Result<(), String> {
                 opt.amount,
                 opt.gas_price,
                 opt.chain_id,
-                &opt.key_path.as_ref()
+                &opt.key_path.as_ref(),
             )?;
             let r = format!("RLP: {}", rlp.to_hex::<String>());
             if let Some(url) = opt.rpc {
                 println!("Submitting {} to {}", r, url);
-                let r = crate::web3::send(&url, |rt, web3| rt.block_on(
-                    web3.eth().send_raw_transaction(rlp.clone().into())
-                )).map_err(crate::utils::debug)?;
+                let r = crate::web3::send(&url, |rt, web3| {
+                    rt.block_on(web3.eth().send_raw_transaction(rlp.clone().into()))
+                })
+                .map_err(crate::utils::debug)?;
                 println!("Response: {:?}", r);
             }
             r
-        },
+        }
     };
     println!("{}", result);
     Ok(())
@@ -109,7 +115,7 @@ impl std::ops::Deref for HexBytes {
 
     fn deref(&self) -> &Self::Target {
         &*self.0
-    }   
+    }
 }
 
 impl std::fmt::Debug for HexBytes {

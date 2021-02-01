@@ -1,11 +1,15 @@
-use ethereum_transaction::{SignedTransaction, SignTransaction};
+use crate::utils::{debug, sign_transaction};
+use ethereum_transaction::{SignTransaction, SignedTransaction};
 use ethereum_types::U256;
 use ethsign::Signature;
-use crate::utils::{debug, sign_transaction};
 use rlp::Decodable;
 use rustc_hex::ToHex;
 
-pub fn bump_gas_price(gas_price: U256, rlp: &[u8], key_path: &std::path::Path) -> Result<Vec<u8>, String> {
+pub fn bump_gas_price(
+    gas_price: U256,
+    rlp: &[u8],
+    key_path: &std::path::Path,
+) -> Result<Vec<u8>, String> {
     let mut tx = SignedTransaction::decode(&rlp::Rlp::new(rlp)).map_err(debug)?;
     // check correctness of the transaction
     let signature = Signature {
@@ -25,11 +29,13 @@ pub fn bump_gas_price(gas_price: U256, rlp: &[u8], key_path: &std::path::Path) -
 
     // get the secret to sign transaction
     let chain_id = tx.chain_id().unwrap_or_default();
-    let signed = sign_transaction(key_path, SignTransaction {
-        transaction: tx.transaction,
-        chain_id
-    })?;
+    let signed = sign_transaction(
+        key_path,
+        SignTransaction {
+            transaction: tx.transaction,
+            chain_id,
+        },
+    )?;
     let rlp = rlp::encode(&signed).to_vec();
     Ok(rlp)
 }
-
