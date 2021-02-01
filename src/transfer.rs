@@ -1,6 +1,6 @@
-use ethereum_types::{H160, U256};
-use ethereum_transaction::{SignTransaction, Transaction};
 use crate::utils::{debug, sign_transaction};
+use ethereum_transaction::{SignTransaction, Transaction};
+use ethereum_types::{H160, U256};
 
 pub fn transfer(
     to: H160,
@@ -37,10 +37,11 @@ pub fn get_nonce(
         (Some(url), None) => {
             let address = crate::utils::read_keyfile_address(key_path)?;
             println!("Retrieving nonce for {:?}", address);
-            crate::web3::send(&url, |rt, web3| rt.block_on(
-                web3.eth().transaction_count(address, None)
-            )).map_err(debug)
-        },
+            crate::web3::send(&url, |rt, web3| {
+                rt.block_on(web3.eth().transaction_count(address, None))
+            })
+            .map_err(debug)
+        }
         (_, Some(nonce)) => Ok(nonce.clone()),
         (None, None) => Err("No RPC nor Nonce provided.".into()),
     }
