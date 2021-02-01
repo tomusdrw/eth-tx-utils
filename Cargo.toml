@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 env_logger = "0.8"
 ethereum-transaction = "0.4"
-ethereum-types = "0.9"
+ethereum-types = "0.11"
 ethsign = "0.7"
 rlp = "0.4"
 rpassword = "5.0"
