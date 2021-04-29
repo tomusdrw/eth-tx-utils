@@ -1,0 +1,21 @@
+version: 2
+updates:
+- package-ecosystem: cargo
+  directory: "/"
+  schedule:
+    interval: monthly
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: tokio
+    versions:
+    - 1.0.1
+    - 1.1.1
+  - dependency-name: web3
+    versions:
+    - 0.15.0
+  - dependency-name: ethereum-types
+    versions:
+    - 0.11.0
+  - dependency-name: rlp
+    versions:
+    - 0.5.0
