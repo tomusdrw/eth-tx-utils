@@ -10,7 +10,7 @@ ethereum-transaction = { git = "https://github.com/tomusdrw/jsonrpc-proxy", bran
 ethereum-types = "0.10"
 ethsign = "0.8"
 rlp = "0.5"
-rpassword = "5.0"
+rpassword = "7.2"
 rustc-hex = "2"
 serde_json = "1.0"
 structopt = "0.3"
